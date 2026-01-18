@@ -1,0 +1,15 @@
+fastapi~=0.127.0
+uvicorn[standard]
+pydantic-settings~=2.12.0
+python-dotenv
+
+sqlalchemy~=2.0.45
+psycopg[binary]
+
+pytest
+httpx
+
+pydantic~=2.12.5
+passlib~=1.7.4
+python-jose~=3.5.0
+alembic~=1.18.0
