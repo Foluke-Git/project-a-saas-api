@@ -37,10 +37,20 @@ def run_migrations():
 # We set env vars BEFORE importing app, so settings read the test DB URL.
 @pytest.fixture(scope="session", autouse=True)
 def _set_test_env():
-    os.environ["DATABASE_URL"] = "postgresql+psycopg://postgres:postgres@localhost:5433/saas_test_db"
-    os.environ["JWT_SECRET_KEY"] = "test-secret"
-    os.environ["JWT_ALGORITHM"] = "HS256"
-    os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"] = "60"
+    # This is used locally
+    #os.environ["DATABASE_URL"] = "postgresql+psycopg://postgres:postgres@localhost:5433/saas_test_db"
+    #os.environ["JWT_SECRET_KEY"] = "test-secret"
+    #os.environ["JWT_ALGORITHM"] = "HS256"
+    #os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"] = "60"
+
+    # This is used in CI which works everywhere
+    os.environ.setdefault(
+        "DATABASE_URL",
+        "postgresql+psycopg://postgres:postgres@localhost:5433/saas_test_db?connect_timeout=3",
+    )
+    os.environ.setdefault("JWT_SECRET_KEY", "test-secret")
+    os.environ.setdefault("JWT_ALGORITHM", "HS256")
+    os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
 
     run_migrations()
 
