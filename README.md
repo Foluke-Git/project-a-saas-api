@@ -1,5 +1,7 @@
 🚀 SaaS API – Local Development, Testing & CI
 
+![CI](https://github.com/<user>/<repo>/actions/workflows/test.yml/badge.svg)
+
 A production-style FastAPI SaaS backend using PostgreSQL, JWT authentication, Alembic migrations, automated tests, Docker, and GitHub Actions CI.
 
 🧱 Tech Stack
