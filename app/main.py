@@ -11,9 +11,14 @@ from app.db.deps import get_db
 from app.db.init_db import init_db
 
 
+import os
+from contextlib import asynccontextmanager
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_db()
+    # Only initialize DB in normal app runs (not tests)
+    if os.getenv("SKIP_DB_INIT") != "1":
+        init_db()
     yield
 
 

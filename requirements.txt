@@ -8,8 +8,13 @@ psycopg[binary]
 
 pytest
 httpx
+pytest-asyncio
 
 pydantic~=2.12.5
 passlib~=1.7.4
 python-jose~=3.5.0
 alembic~=1.18.0
+
+email-validator
+
+python-multipart

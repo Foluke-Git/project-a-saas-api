@@ -2,6 +2,7 @@ services:
   db:
     image: postgres:16
     container_name: saas_db
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
@@ -16,7 +17,38 @@ services:
       timeout: 5s
       retries: 10
 
+  test_db:
+    image: postgres:16
+    container_name: saas_test_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: saas_test_db
+    ports:
+      - "55433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d saas_test_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  tests:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - ./:/app
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@test_db:5432/saas_test_db
+      JWT_SECRET_KEY: test-secret
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: "60"
+      SKIP_DB_INIT: "1"
+    depends_on:
+      test_db:
+        condition: service_healthy
+    command: bash -lc "pip install -r requirements.txt && python -m pytest -q"
+
+
 volumes:
   saas_db_data:
-
-restart: unless-stopped #Helps keep DB running after reboot/crashes
