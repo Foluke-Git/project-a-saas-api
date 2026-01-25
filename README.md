@@ -1,6 +1,6 @@
 🚀 SaaS API – Local Development, Testing & CI
 
-A FastAPI-based SaaS backend with PostgreSQL, JWT authentication, Alembic migrations, automated tests, and GitHub Actions CI.
+A production-style FastAPI SaaS backend using PostgreSQL, JWT authentication, Alembic migrations, automated tests, Docker, and GitHub Actions CI.
 
 🧱 Tech Stack
 
@@ -32,11 +32,14 @@ Git
 
 The application is configured entirely via environment variables.
 
-Minimum required:
+Minimum required
 
 DATABASE_URL
+
 JWT_SECRET_KEY
+
 JWT_ALGORITHM
+
 ACCESS_TOKEN_EXPIRE_MINUTES
 
 Example .env (local development)
@@ -46,14 +49,19 @@ JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=60
 
 
-⚠️ Important
+✅ .env.example is committed
+❌ .env must NOT be committed
 
-This project uses psycopg v3, so database URLs must use:
+⚠️ Important Notes
+
+This project uses psycopg v3
+
+Database URLs must use:
 
 postgresql+psycopg://
 
 
-not psycopg2.
+Do not use psycopg2
 
 🏃 Running the App Locally (Development)
 1️⃣ Clone the repository
@@ -64,7 +72,7 @@ cd project-a-saas-api
 python -m venv .venv
 
 
-Windows (PowerShell):
+Windows (PowerShell)
 
 .venv\Scripts\Activate.ps1
 
@@ -86,9 +94,9 @@ alembic upgrade head
 
 You only need to run this when:
 
-setting up a fresh database
+Setting up a fresh database
 
-adding new migrations
+Adding new migrations
 
 6️⃣ Start the API server
 uvicorn app.main:app --reload
@@ -97,10 +105,10 @@ uvicorn app.main:app --reload
 
 Once running:
 
-Swagger UI:
+Swagger UI
 http://127.0.0.1:8000/docs
 
-OpenAPI JSON:
+OpenAPI JSON
 http://127.0.0.1:8000/openapi.json
 
 🔐 Authentication Endpoints
@@ -114,7 +122,7 @@ POST /auth/register
 }
 
 
-Responses:
+Responses
 
 201 Created
 
@@ -125,7 +133,7 @@ Login
 POST /auth/login
 (Form data)
 
-Responses:
+Responses
 
 200 OK
 
@@ -136,7 +144,7 @@ Get current user
 
 GET /users/me
 
-Requires:
+Header:
 
 Authorization: Bearer <access_token>
 
@@ -158,34 +166,28 @@ docker compose run --rm tests
 
 This will:
 
-start the test database
+Start the test database
 
-run Alembic migrations automatically
+Run Alembic migrations automatically
 
-execute pytest
+Execute pytest
 
 Option B: Run tests locally on Windows
-
-1️⃣ Start test DB:
-
+1️⃣ Start test DB
 docker compose up -d test_db
 
-
-2️⃣ Set environment variables:
-
+2️⃣ Set environment variables
 $env:DATABASE_URL="postgresql+psycopg://postgres:postgres@localhost:55433/saas_test_db"
 $env:JWT_SECRET_KEY="test-secret"
 $env:JWT_ALGORITHM="HS256"
 $env:ACCESS_TOKEN_EXPIRE_MINUTES="60"
 $env:SKIP_DB_INIT="1"
 
-
-3️⃣ Run tests:
-
+3️⃣ Run tests
 pytest -q
 
 
-✅ Alembic migrations are run automatically by tests/conftest.py.
+✅ Alembic migrations are run automatically by tests/conftest.py
 
 🗂 Database Migrations (Alembic)
 Create a migration
@@ -195,24 +197,24 @@ Apply migrations
 alembic upgrade head
 
 
-⚠️ Important
-
-Always commit files inside:
+⚠️ Always commit files inside:
 
 alembic/versions/
 
 
-CI and tests depend on these.
+Tests and CI depend on these files.
 
 🤖 GitHub Actions CI
 
-The project includes CI that:
+This project includes fully automated CI via GitHub Actions.
 
-starts PostgreSQL
+CI does the following:
 
-runs Alembic migrations
+Starts PostgreSQL
 
-runs pytest
+Runs Alembic migrations
+
+Executes pytest
 
 CI will pass as long as:
 
@@ -220,10 +222,16 @@ alembic/versions/*.py are committed
 
 DATABASE_URL is respected in alembic/env.py
 
+Migrations are valid
+
+The workflow lives in:
+
+.github/workflows/test.yml
+
 🧯 Troubleshooting
 ❌ relation "users" does not exist
 
-Migrations did not run
+Cause: migrations did not run
 
 Fix:
 
@@ -231,7 +239,7 @@ alembic upgrade head
 
 ❌ Can't locate revision identified by ...
 
-Database references an old migration that no longer exists
+Cause: database references a migration that no longer exists
 
 Fix (local test DB):
 
