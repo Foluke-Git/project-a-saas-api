@@ -18,3 +18,5 @@ alembic~=1.18.0
 email-validator
 
 python-multipart
+
+argon2-cffi>=23.1.0
