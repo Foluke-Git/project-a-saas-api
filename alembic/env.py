@@ -4,7 +4,10 @@ import os
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
-from app.core.config import settings
+from app.core.config import get_settings
+
+settings = get_settings()
+
 from app.db.base import Base
 from app.models.user import User  # noqa: F401 (ensures User model is registered)
 

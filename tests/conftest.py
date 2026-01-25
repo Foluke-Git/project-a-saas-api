@@ -21,42 +21,40 @@ def _make_alembic_cfg(db_url: str) -> Config:
     return alembic_cfg
 
 
-def _wait_for_db(db_url: str, timeout_seconds: int = 20) -> None:
+def _wait_for_db(db_url: str, timeout_seconds: int = 30) -> None:
     engine = create_engine(db_url, pool_pre_ping=True)
     start = time.time()
-    while True:
+    last_exc = None
+    while time.time() - start < timeout_seconds:
         try:
             with engine.connect() as conn:
                 conn.execute(text("SELECT 1"))
             return
-        except Exception:
-            if time.time() - start > timeout_seconds:
-                raise
+        except Exception as e:
+            last_exc = e
             time.sleep(0.5)
+    raise RuntimeError(f"DB not reachable within {timeout_seconds}s: {last_exc!r}")
 
 
-def _users_table_exists(db_url: str) -> bool:
+def _reset_schema(db_url: str) -> None:
+    """
+    Make the database deterministic for every test session.
+    This avoids "Can't locate revision ..." and stale tables.
+    """
     engine = create_engine(db_url, pool_pre_ping=True)
-    with engine.connect() as conn:
-        # checks "public.users" existence (default schema)
-        q = text("""
-            SELECT 1
-            FROM information_schema.tables
-            WHERE table_schema = 'public' AND table_name = 'users'
-        """)
-        return conn.execute(q).first() is not None
+    with engine.begin() as conn:
+        conn.execute(text("DROP SCHEMA IF EXISTS public CASCADE"))
+        conn.execute(text("CREATE SCHEMA public"))
 
 
-def run_migrations(db_url: str) -> None:
-    _wait_for_db(db_url)
-
+def _run_migrations(db_url: str) -> None:
     alembic_cfg = _make_alembic_cfg(db_url)
     command.upgrade(alembic_cfg, "head")
 
 
 @pytest.fixture(scope="session", autouse=True)
 def _set_test_env():
-    # Use Docker-provided DATABASE_URL if present; otherwise default to Windows localhost mapping
+    # If CI/docker provides DATABASE_URL, use it. Otherwise default to Windows mapping.
     db_url = os.getenv("DATABASE_URL") or (
         "postgresql+psycopg://postgres:postgres@localhost:55433/saas_test_db?connect_timeout=3"
     )
@@ -67,18 +65,9 @@ def _set_test_env():
     os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
     os.environ.setdefault("SKIP_DB_INIT", "1")
 
-    # Run Alembic migrations
-    run_migrations(db_url)
-
-    # ✅ Verify migrations actually created tables.
-    # If not, fallback to Base.metadata.create_all (keeps you unblocked on Windows).
-    if not _users_table_exists(db_url):
-        from app.db.base import Base  # your declarative Base
-        # IMPORTANT: ensure models are imported so they register with Base.metadata
-        from app.models import user  # adjust to your actual module(s): app.models.users etc.
-
-        engine = create_engine(db_url, pool_pre_ping=True)
-        Base.metadata.create_all(bind=engine)
+    _wait_for_db(db_url)
+    _reset_schema(db_url)
+    _run_migrations(db_url)
 
 
 @pytest.fixture()

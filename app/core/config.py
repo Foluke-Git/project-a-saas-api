@@ -1,3 +1,5 @@
+# app/core/config.py
+from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -6,8 +8,10 @@ class Settings(BaseSettings):
     environment: str = "local"
     debug: bool = True
 
-    database_url: str = "postgresql+psycopg2://postgres:postgres@localhost:5432/saas_db"
-    jwt_secret_key: str
+    # use psycopg (not psycopg2) to match your stack
+    database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/saas_db"
+
+    jwt_secret_key: str = "change-me"  # or keep required if you prefer
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
 
@@ -18,4 +22,6 @@ class Settings(BaseSettings):
     )
 
 
-settings = Settings()
+@lru_cache(maxsize=1)
+def get_settings() -> Settings:
+    return Settings()

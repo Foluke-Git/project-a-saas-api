@@ -3,7 +3,9 @@ from typing import Any
 
 from jose import jwt
 
-from app.core.config import settings
+from app.core.config import get_settings
+
+settings = get_settings()
 
 
 def create_access_token(subject: str | int, expires_minutes: int | None = None) -> str:

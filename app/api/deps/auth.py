@@ -4,7 +4,10 @@ from jose import JWTError, jwt
 from jose.exceptions import ExpiredSignatureError
 from sqlalchemy.orm import Session
 
-from app.core.config import settings
+from app.core.config import get_settings
+
+settings = get_settings()
+
 from app.db.deps import get_db
 from app.services.user_service import get_user_by_id
 

@@ -6,7 +6,10 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.api.router import api_router
-from app.core.config import settings
+from app.core.config import get_settings
+
+settings = get_settings()
+
 from app.db.deps import get_db
 from app.db.init_db import init_db
 
